@@ -25,4 +25,8 @@ public class StaticStates {
         MANUAL_CONTROLLING,
         FEEDING
     }
+
+    public static enum ExampleState {
+        DISABLED
+    }
 }
