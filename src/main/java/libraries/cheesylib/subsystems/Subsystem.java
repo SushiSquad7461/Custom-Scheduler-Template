@@ -25,7 +25,7 @@ public abstract class Subsystem<SubsystemState extends Enum<SubsystemState>>  {
     protected SubsystemState wantedState;
 
     protected String subsystemName;
-    private static int sInstanceCount = 0;
+    private int sInstanceCount = 0;
     private boolean mStateChanged;
     private LatchedBoolean mLB_SystemStateChange = new LatchedBoolean();
 
