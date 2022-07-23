@@ -1,7 +1,8 @@
 package libraries.cheesylib.subsystems;
 
-import libraries.cheesylib.loops.ILooper;
+import edu.wpi.first.wpilibj.Timer;
 import libraries.cheesylib.loops.Loop.Phase;
+import libraries.cheesylib.util.LatchedBoolean;
 
 /**
  * The Subsystem abstract class, which serves as a basic framework for all robot subsystems. Each subsystem outputs
@@ -15,41 +16,141 @@ import libraries.cheesylib.loops.Loop.Phase;
  */
 public abstract class Subsystem<SubsystemState extends Enum<SubsystemState>>  {
     private SubsystemManager mSubsystemManager;
+
+    // Id of subsystem
     protected int mListIndex;
 
+    // States
     private SubsystemState currentState;
     protected SubsystemState wantedState;
 
-    private String subsystemName;
+    protected String subsystemName;
+    private static int sInstanceCount = 0;
+    private boolean mStateChanged;
+    private LatchedBoolean mLB_SystemStateChange = new LatchedBoolean();
 
-    public Subsystem(String name) {
-        this.subsystemName = name;
-        mSubsystemManager = SubsystemManager.getInstance(name);
+    public static int desiredPeriod = 20; // in ms, set to 20 by defualt
+
+    public static double actualPeriod;
+    public static double lastSchedStart;
+
+
+    public Subsystem() {
+        this.subsystemName = this.getClass().getSimpleName();
+        mSubsystemManager = SubsystemManager.getInstance(subsystemName);
     }
 
+    protected void printUsage(String caller) {
+        System.out.println("(" + caller + ") " + " getInstance " + subsystemName + " " + ++sInstanceCount);
+    }
+
+    protected boolean setPeriod(int newPeriod) {
+        if (newPeriod > 0) {
+            desiredPeriod = newPeriod;
+            return true;
+        }
+        System.out.println("Somebody tried setting the period of " + subsystemName + " to " + newPeriod + "ms");
+        return false;
+    }
+
+
     // Optional design pattern for caching periodic reads to avoid hammering the HAL/CAN.
-    public void readPeriodicInputs() {}
+    public final void readPeriodicInputs() {
+        double now = Timer.getFPGATimestamp();
+        actualPeriod = now - lastSchedStart;
+        lastSchedStart = now;
+
+        readPeriodic();
+    }
+
+    public void readPeriodic() {}
 
     // Optional design pattern for caching periodic writes to avoid hammering the HAL/CAN.
-    public void writePeriodicOutputs() {}
+    public final void writePeriodicOutputs() {
+        writePeriodic();
+    }
 
-    public int whenRunAgain () {return 20;}
+    public void writePeriodic() {}
+
+
+    public final int whenRunAgain () { return desiredPeriod; }
 
     public void passInIndex(int listIndex){
         mListIndex = listIndex;
     }
 
-    public void onStart(Phase phase){}
+    public final void onStart(Phase phase) {
+        start(phase);
+        mStateChanged = true;
+            System.out.println(subsystemName + " state " + getCurrentState());
+        mLB_SystemStateChange.update(false); // reset
+            onStop(); // put into a known state
+    }
 
-    public void onLoop(double timestamp){}
+    public abstract void start(Phase phase);
+
+
+    public final void onLoop(double timestamp){
+        synchronized (this) {
+            do {
+                onLoop();
+
+                if (wantedState != currentState) {
+                    System.out.println(
+                        subsystemName + " state " + currentState + " to " + wantedState + " (" + timestamp + ")");
+                    currentState = wantedState;
+                    mStateChanged = true;
+                } else {
+                    mStateChanged = false;
+                }
+            } while (mLB_SystemStateChange.update(mStateChanged));
+        }
+    }
+
+    protected boolean stateChanged() {
+        return mStateChanged;
+    }
+
+    public abstract void onLoop();
 
     public void zeroSensors() {}
+    
+    public final void onStop() {
+        stop();
+        writePeriodicOutputs();
+    }
 
     public abstract void stop();
 
-    public abstract String getLogHeaders();
+    public final String getLogHeaders() {
+        String headers = getPeriodicLogHeaders();
 
-    public abstract String getLogValues(boolean telemetry);
+        return subsystemName+".schedDeltaDesired,"+
+        subsystemName +".schedDeltaActual,"+
+        subsystemName+".schedDuration," + 
+        subsystemName+".mSystemState" + (headers.length() > 0 ? "," + headers : "");
+    }
+
+    public abstract String getPeriodicLogHeaders();
+
+
+    public final String getLogValues(boolean telemetry) {
+        String ret;
+        if (telemetry){
+            ret = ",,,";
+        }
+        else{
+            ret = desiredPeriod + "," +
+            actualPeriod+","+
+                    (Timer.getFPGATimestamp()-lastSchedStart)+",";
+        }
+        String vals = getLogValues();
+
+        return ret + getCurrentState() + (vals.length() > 0 ?  "," + vals : "");
+    }
+
+    public abstract String getLogValues();
+
 
     public abstract void outputTelemetry();
 

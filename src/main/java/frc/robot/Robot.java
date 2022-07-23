@@ -5,20 +5,13 @@
 package frc.robot;
 
 import java.util.Arrays;
-import java.util.Optional;
-
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
-import frc.robot.constants.Constants;
 import frc.robot.subsystems.*;
-import libraries.cheesylib.autos.AutoModeBase;
-import libraries.cheesylib.autos.AutoModeExecutor;
-import libraries.cheesylib.geometry.Pose2d;
 import libraries.cheesylib.loops.Looper;
 import libraries.cheesylib.subsystems.SubsystemManager;
 import libraries.cheesylib.util.CrashTracker;
-import libraries.cyberlib.control.SwerveHeadingController;
 import libraries.cyberlib.utils.RobotName;
 
 /**
@@ -49,14 +42,12 @@ public class Robot extends TimedRobot {
 
     // Subsystems
     private SubsystemManager mSubsystemManager;
-    private JSticks mJSticks;
+    // private JSticks mJSticks;
     private Indexer mIndexer;
     private Collector mCollector;
 
     private final double mLoopPeriod = .005;
     private Looper mSubsystemLooper = new Looper(mLoopPeriod, Thread.NORM_PRIORITY + 1);
-
-    private final SwerveHeadingController mHeadingController = SwerveHeadingController.getInstance();
 
 
     @Override
@@ -68,8 +59,7 @@ public class Robot extends TimedRobot {
         // LiveWindow.setEnabled(false);
         // Initializing subsystems
         mSubsystemManager = SubsystemManager.getInstance(mClassName);
-        mJSticks = JSticks.getInstance(mClassName);
-        mIndexer = Indexer.getInstance(mClassName);
+        // mJSticks = JSticks.getInstance(mClassName);
         mCollector = Collector.getInstance(mClassName);
 
         // Create subsystem manager and add all subsystems it will manage
@@ -77,8 +67,7 @@ public class Robot extends TimedRobot {
         mSubsystemManager.initializeSubsystemManager((int) (mLoopPeriod * 1000),
                 Arrays.asList(
                         // List of subsystems
-                        mJSticks,
-                        mIndexer,
+                        // mJSticks,
                         mCollector
                         ));
 

@@ -196,7 +196,7 @@ public class SubsystemManager implements ILooper {
         @Override
         public void onStop(double timestamp) {
             for (Subsystem s : mAllSubsystems) {
-                s.stop();
+                s.onStop();
             }
             System.out.println("schedule time lost "+lLostTime);
         }
