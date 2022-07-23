@@ -1,8 +1,6 @@
 package frc.robot.constants;
 
 import edu.wpi.first.math.util.Units;
-import frc.robot.limelight.CameraResolution;
-import frc.robot.limelight.PipelineConfiguration;
 import libraries.cheesylib.geometry.Pose2d;
 import libraries.cheesylib.geometry.Rotation2d;
 import libraries.cheesylib.geometry.Translation2d;
@@ -136,12 +134,7 @@ public class Constants {
     // Rim thickness + inner diameter of upper hub.  Reflective tape is at front rim.  Shot should land in center.
     public static final Pose2d kVisionTargetToGoalOffset = new Pose2d(
             -Units.inchesToMeters(2.625 + 24.0) , 0, Rotation2d.identity());
-
-    public static final PipelineConfiguration kLowRes1xZoom = new PipelineConfiguration(
-            CameraResolution.F_320x240, 1.0);
-    public static final PipelineConfiguration kLowRes2xZoom = new PipelineConfiguration(
-            CameraResolution.F_320x240, 2.0);
-
+            
     // To turn in place, a minimum velocity is required that can
     // 1) overcome the initial inertia when standing still and
     // 2) minimize overshooting (and oscillation).
