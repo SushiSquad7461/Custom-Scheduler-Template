@@ -49,7 +49,6 @@ public class Robot extends TimedRobot {
 
     // Subsystems
     private SubsystemManager mSubsystemManager;
-    private Superstructure mSuperstructure;
     private JSticks mJSticks;
     private Indexer mIndexer;
     private Collector mCollector;
@@ -70,7 +69,6 @@ public class Robot extends TimedRobot {
         // Initializing subsystems
         mSubsystemManager = SubsystemManager.getInstance(mClassName);
         mJSticks = JSticks.getInstance(mClassName);
-        mSuperstructure = Superstructure.getInstance(mClassName);
         mIndexer = Indexer.getInstance(mClassName);
         mCollector = Collector.getInstance(mClassName);
 
@@ -80,7 +78,6 @@ public class Robot extends TimedRobot {
                 Arrays.asList(
                         // List of subsystems
                         mJSticks,
-                        mSuperstructure,
                         mIndexer,
                         mCollector
                         ));

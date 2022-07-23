@@ -15,8 +15,10 @@ import libraries.cheesylib.subsystems.Subsystem;
 import libraries.cheesylib.subsystems.SubsystemManager;
 import libraries.cheesylib.util.LatchedBoolean;
 import libraries.cyberlib.control.FramePeriodSwitch;
+import libraries.newAdditions.State;
+import libraries.newAdditions.StaticStates.*;
 
-public class Collector extends Subsystem {
+public class Collector extends Subsystem<CollecterState> {
 
     // Hardware
     private final TalonFX mFXMotor;
@@ -46,50 +48,27 @@ public class Collector extends Subsystem {
     // latched booleans
     private LatchedBoolean mLB_handlerLoopCounter = new LatchedBoolean();
 
-    // Subsystem States
-    public enum SolenoidState {
-        EXTEND(true),
-        RETRACT(false);
-
-        private final boolean state;
-
-        private SolenoidState(boolean state) {
-            this.state = state;
-        }
-
-        public boolean get() {
-            return state;
-        }
-    }
-
-    public enum SystemState {
-        ASSESSING,
-        BACKING,
-        COLLECTING,
-        DISABLING,
-        HOLDING,
-        MANUAL_CONTROLLING,
-        FEEDING
-    }
-
-    public enum WantedState {
-        ASSESS,
-        BACK,
-        COLLECT,
-        DISABLE,
-        HOLD,
-        MANUAL_CONTROL,
-        FEED
-    }
-
-    private SystemState mSystemState;
-    private WantedState mWantedState;
     private boolean mStateChanged;
-    private PeriodicIO mPeriodicIO = new PeriodicIO();
     private LatchedBoolean mLB_SystemStateChange = new LatchedBoolean();
 
-    // Other
-    private SubsystemManager mSubsystemManager;
+    public static class mPeriodicIO {
+        // Logging
+        public static int schedDeltaDesired;
+        public static double schedDeltaActual;
+        public static double lastSchedStart;
+
+        // Inputs
+        public static double motorPosition;
+        public static double motorStator;
+
+        // Outputs
+        private static ControlMode motorControlMode;
+        private static double motorDemand;
+        private static SolenoidState solenoidDemand;
+
+        // other
+        private static SolenoidState solenoidState;
+    }
 
     // Subsystem Creation
     private static String sClassName;
@@ -110,11 +89,11 @@ public class Collector extends Subsystem {
     }
 
     private Collector(String caller) {
+        super("Collector");
         sClassName = this.getClass().getSimpleName();
         printUsage(caller);
         mFXMotor = TalonFXFactory.createDefaultTalon(Ports.COLLECTOR, Constants.kCanivoreName);
         mSolenoid = new Solenoid(PneumaticsModuleType.CTREPCM, Ports.COLLECTOR_DEPLOY);
-        mSubsystemManager = SubsystemManager.getInstance(sClassName);
         configMotors();
     }
 
@@ -143,20 +122,17 @@ public class Collector extends Subsystem {
             switch (phase){
                 case TELEOP:
                 case AUTONOMOUS:
-                    mSystemState = SystemState.HOLDING;
-                    mWantedState = WantedState.HOLD;
+                    setState(CollecterState.HOLDING);
                     break;
                 case DISABLED:
-                    mSystemState = SystemState.DISABLING;
-                    mWantedState = WantedState.DISABLE;
+                    setState(CollecterState.DISABLING);
                     break;
                 case TEST:
-                    mSystemState = SystemState.MANUAL_CONTROLLING;
-                    mWantedState = WantedState.MANUAL_CONTROL;
+                    setState(CollecterState.MANUAL_CONTROLLING);
                     break;
             }
             mStateChanged = true;
-            System.out.println(sClassName + " state " + mSystemState);
+            System.out.println(sClassName + " state " + getCurrentState());
             mPeriodicIO.schedDeltaDesired = kSchedDeltaActive;
             mLB_SystemStateChange.update(false); // reset
             stop(); // put into a known state
@@ -167,37 +143,38 @@ public class Collector extends Subsystem {
     public void onLoop(double timestamp) {
         synchronized (Collector.this) {
             do {
-                SystemState newState = null;
-                switch (mSystemState) {
+                switch (getCurrentState()) {
                     case ASSESSING:
-                        newState = handleAssessing();
+                        handleAssessing();
                         break;
                     case BACKING:
-                        newState = handleBacking();
+                        handleBacking();
                         break;
                     case COLLECTING:
-                        newState = handleCollecting();
+                        handleCollecting();
                         break;
                     case FEEDING:
-                        newState = handleFeeding();
+                        handleFeeding();
                         break;
                     case DISABLING:
-                        newState = handleDisabling();
+                        handleDisabling();
                         break;
                     case HOLDING:
-                        newState = handleHolding();
+                        handleHolding();
                         break;
                     case MANUAL_CONTROLLING:
-                        newState = handleManualControlling();
+                        handleManualControlling();
                         break;
                     // default:
                     // leave commented so compiler will identify missing cases
                 }
 
-                if (newState != mSystemState) {
+                CollecterState newState = getWantedState();
+
+                if (newState != getCurrentState()) {
                     System.out.println(
-                            sClassName + " state " + mSystemState + " to " + newState + " (" + timestamp + ")");
-                    mSystemState = newState;
+                            sClassName + " state " + getCurrentState() + " to " + newState + " (" + timestamp + ")");
+                    setState(newState);;
                     mStateChanged = true;
                 } else {
                     mStateChanged = false;
@@ -206,31 +183,9 @@ public class Collector extends Subsystem {
         }
     }
 
-    private SystemState defaultStateTransfer() {
-        switch (mWantedState) {
-            case ASSESS:
-                return SystemState.ASSESSING;
-            case BACK:
-                return SystemState.BACKING;
-            case COLLECT:
-                return SystemState.COLLECTING;
-            case DISABLE:
-                return SystemState.DISABLING;
-            case HOLD:
-                return SystemState.HOLDING;
-            case MANUAL_CONTROL:
-                return SystemState.MANUAL_CONTROLLING;
-            case FEED:
-                return SystemState.FEEDING;
-            // default:
-                // leave commented so compiler will identify missing cases
-        }
-        return null; // crash if this happens
-    }
-
-    public boolean isHandlerComplete(WantedState state) {
+    public boolean isHandlerComplete(CollecterState state) {
         switch(state) {
-            case ASSESS:
+            case ASSESSING:
                 return mAssessmentHandlerComplete;
             default:
                 System.out.println("Uh oh something is not right in "+sClassName);
@@ -238,24 +193,7 @@ public class Collector extends Subsystem {
         }
     }
 
-    // this method should only be used by external subsystems.
-    // if you want to change your own wantedState then simply set
-    // it directly
-    public synchronized void setWantedState(WantedState state, String who) {
-        if (state != mWantedState) {
-            mWantedState = state;
-            mSubsystemManager.scheduleMe(mListIndex, 1, true);
-            System.out.println(who + " is setting wanted state of " + sClassName + " to " + state);
-        } else {
-            System.out.println(who + " is setting wanted state of " + sClassName + " to " + state + " again!!!");
-        }
-    }
-
-    public synchronized WantedState getWantedState() {
-        return mWantedState;
-    }
-
-    private SystemState handleAssessing() {
+    private void handleAssessing() {
         if (mStateChanged) {
             mAssessingStartPosition = mPeriodicIO.motorPosition;
             setSolenoidDemand(SolenoidState.RETRACT);
@@ -280,14 +218,13 @@ public class Collector extends Subsystem {
             mAssessmentHandlerComplete = true;
         }
 
-        if (mWantedState != WantedState.ASSESS){
+        if (getWantedState() != CollecterState.ASSESSING) {
             mAssessmentHandlerComplete = false;
         }
 
-        return defaultStateTransfer();
     }
 
-    private SystemState handleBacking() {
+    private void handleBacking() {
         if (mStateChanged) {
             setSolenoidDemand(SolenoidState.EXTEND);
             setMotorControlModeAndDemand(ControlMode.PercentOutput,kCollectSpeed);
@@ -302,51 +239,41 @@ public class Collector extends Subsystem {
         if(mLB_handlerLoopCounter.update(mHandlerLoopCount-- <= 0)) {
             setMotorControlModeAndDemand(ControlMode.PercentOutput,-kCollectSpeed);
         }
-
-        return defaultStateTransfer();
     }
 
-    private SystemState handleCollecting() {
+    private void handleCollecting() {
         if(mStateChanged) {
             setSolenoidDemand(SolenoidState.EXTEND);
             setMotorControlModeAndDemand(ControlMode.PercentOutput,kCollectSpeed);
             mPeriodicIO.schedDeltaDesired = kSchedDeltaActive;
         }
-        
-        return defaultStateTransfer();
     }
 
-    private SystemState handleFeeding() {
+    private void handleFeeding() {
         if(mStateChanged) {
             setMotorControlModeAndDemand(ControlMode.PercentOutput,kFeedSpeed);
             mPeriodicIO.schedDeltaDesired = kSchedDeltaActive;
         }
-        
-        return defaultStateTransfer();
     }
 
 
-    private SystemState handleDisabling() {
+    private void handleDisabling() {
         if (mStateChanged) {
             setSolenoidDemand(SolenoidState.RETRACT);
             setMotorControlModeAndDemand(ControlMode.PercentOutput,0.0);
             mPeriodicIO.schedDeltaDesired = kSchedDeltaDormant;
         }
-
-        return defaultStateTransfer();
     }
 
-    private SystemState handleHolding() {
+    private void handleHolding() {
         if (mStateChanged) {
             setSolenoidDemand(SolenoidState.RETRACT);
             setMotorControlModeAndDemand(ControlMode.PercentOutput,0.0);
             mPeriodicIO.schedDeltaDesired = kSchedDeltaDormant;
         }
-
-        return defaultStateTransfer();
     }
 
-    private SystemState handleManualControlling() {
+    private void handleManualControlling() {
         if (mStateChanged) {
             mTestMotorDemand = 0;
             mTestSolenoidDemand = SolenoidState.RETRACT;
@@ -355,8 +282,6 @@ public class Collector extends Subsystem {
 
         setMotorControlModeAndDemand(ControlMode.PercentOutput, mTestMotorDemand);
         setSolenoidDemand(mTestSolenoidDemand);
-
-        return defaultStateTransfer();
     }
 
     public boolean getLastAssessmentResult(){
@@ -442,7 +367,7 @@ public class Collector extends Subsystem {
                     (Timer.getFPGATimestamp()-mPeriodicIO.lastSchedStart)+",";
         }
         return  start+
-                mSystemState+","+
+                getCurrentState() +","+
                 mPeriodicIO.motorControlMode+","+
                 mPeriodicIO.motorDemand+","+
                 mPeriodicIO.motorPosition+","+
@@ -453,24 +378,5 @@ public class Collector extends Subsystem {
     @Override
     public void outputTelemetry() {
         mPeriodicIO.motorStator = FramePeriodSwitch.getStatorCurrent(mFXMotor);
-    }
-
-    public static class PeriodicIO {
-        // Logging
-        private int schedDeltaDesired;
-        public double schedDeltaActual;
-        private double lastSchedStart;
-
-        // Inputs
-        private double motorPosition;
-        private double motorStator;
-
-        // Outputs
-        private ControlMode motorControlMode;
-        private double motorDemand;
-        private SolenoidState solenoidDemand;
-
-        // other
-        private SolenoidState solenoidState;
     }
 }

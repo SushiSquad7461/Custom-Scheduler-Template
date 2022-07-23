@@ -13,8 +13,19 @@ import libraries.cheesylib.loops.Loop.Phase;
  * state; the robot code will try to match the two states with actions. Each Subsystem also is responsible for
  * instantializing all member components at the start of the match.
  */
-public abstract class Subsystem {
+public abstract class Subsystem<SubsystemState extends Enum<SubsystemState>>  {
+    private SubsystemManager mSubsystemManager;
     protected int mListIndex;
+
+    private SubsystemState currentState;
+    protected SubsystemState wantedState;
+
+    private String subsystemName;
+
+    public Subsystem(String name) {
+        this.subsystemName = name;
+        mSubsystemManager = SubsystemManager.getInstance(name);
+    }
 
     // Optional design pattern for caching periodic reads to avoid hammering the HAL/CAN.
     public void readPeriodicInputs() {}
@@ -41,4 +52,39 @@ public abstract class Subsystem {
     public abstract String getLogValues(boolean telemetry);
 
     public abstract void outputTelemetry();
+
+    public void scheduleForStateChange() {
+        mSubsystemManager.scheduleMe(mListIndex, 1, true);
+    }
+
+    public synchronized SubsystemState getCurrentState() {
+        return currentState;
+    }
+
+    protected SubsystemState transferState() {
+        currentState = wantedState;
+        return currentState;
+    }
+
+    protected void setState(SubsystemState newState) {
+        currentState = newState;
+    }
+
+
+    // this method should only be used by external subsystems.
+    // if you want to change your own wantedState then simply set
+    // it directly
+    public synchronized void setWantedState(SubsystemState state, String who) {
+        if (state != wantedState) {
+            wantedState = state;
+            scheduleForStateChange();
+            System.out.println(who + " is setting wanted state of " + subsystemName + " to " + state);
+        } else {
+            System.out.println(who + " is setting wanted state of " + subsystemName + " to " + state + " again!!!");
+        }
+    }
+
+    public SubsystemState getWantedState() {
+        return wantedState;
+    }
 }
