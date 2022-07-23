@@ -29,10 +29,10 @@ public abstract class Subsystem<SubsystemState extends Enum<SubsystemState>>  {
     private boolean mStateChanged;
     private LatchedBoolean mLB_SystemStateChange = new LatchedBoolean();
 
-    public static int desiredPeriod = 20; // in ms, set to 20 by defualt
+    public int desiredPeriod = 20; // in ms, set to 20 by defualt
 
-    public static double actualPeriod;
-    public static double lastSchedStart;
+    public double actualPeriod;
+    public double lastSchedStart;
 
 
     public Subsystem() {
