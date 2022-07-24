@@ -1,4 +1,4 @@
-package libraries.newAdditions;
+package frc.robot.constants;
 
 public class StaticStates {
     public static enum SolenoidState {
@@ -16,17 +16,14 @@ public class StaticStates {
         }
     }
 
-    public static enum CollecterState {
-        ASSESSING,
-        BACKING,
-        COLLECTING,
-        DISABLING,
-        HOLDING,
-        MANUAL_CONTROLLING,
-        FEEDING
+    public static enum ShooterState {
+        TARMAC,
+        FENDER,
+        DISABLED
     }
 
-    public static enum ExampleState {
+    public static enum JStickState {
+        READING,
         DISABLED
     }
 }

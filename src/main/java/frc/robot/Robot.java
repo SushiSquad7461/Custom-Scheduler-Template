@@ -12,7 +12,6 @@ import frc.robot.subsystems.*;
 import libraries.cheesylib.loops.Looper;
 import libraries.cheesylib.subsystems.SubsystemManager;
 import libraries.cheesylib.util.CrashTracker;
-import libraries.cyberlib.utils.RobotName;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -36,15 +35,14 @@ public class Robot extends TimedRobot {
     // in the src\main\deploy directory of VS is a RobotName.txt file
     // this file is downloaded to the deploy directory with each deploy of the robot
     // jar file
-    RobotName robotName = new RobotName("2022Robot");
 
     private String mClassName;
 
     // Subsystems
     private SubsystemManager mSubsystemManager;
     // private JSticks mJSticks;
-    private Indexer mIndexer;
-    private Collector mCollector;
+    private JSticks mJSticks;
+    private Shooter mShooter;
 
     private final double mLoopPeriod = .005;
     private Looper mSubsystemLooper = new Looper(mLoopPeriod, Thread.NORM_PRIORITY + 1);
@@ -60,15 +58,16 @@ public class Robot extends TimedRobot {
         // Initializing subsystems
         mSubsystemManager = SubsystemManager.getInstance(mClassName);
         // mJSticks = JSticks.getInstance(mClassName);
-        mCollector = Collector.getInstance(mClassName);
+        mShooter = Shooter.getInstance(mClassName);
+        mJSticks = JSticks.getInstance(mClassName);
 
         // Create subsystem manager and add all subsystems it will manage
         mSubsystemManager = SubsystemManager.getInstance(mClassName);
         mSubsystemManager.initializeSubsystemManager((int) (mLoopPeriod * 1000),
                 Arrays.asList(
                         // List of subsystems
-                        // mJSticks,
-                        mCollector
+                        mJSticks,
+                        mShooter
                         ));
 
         // ask each subsystem to register itself
