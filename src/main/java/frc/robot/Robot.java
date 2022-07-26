@@ -41,7 +41,7 @@ public class Robot extends TimedRobot {
     // Subsystems
     private SubsystemManager mSubsystemManager;
     // private JSticks mJSticks;
-    private JSticks mJSticks;
+    private RobotContainer robor;
     private Shooter mShooter;
 
     private final double mLoopPeriod = .005;
@@ -59,14 +59,14 @@ public class Robot extends TimedRobot {
         mSubsystemManager = SubsystemManager.getInstance(mClassName);
         // mJSticks = JSticks.getInstance(mClassName);
         mShooter = Shooter.getInstance(mClassName);
-        mJSticks = JSticks.getInstance(mClassName);
+        robor = RobotContainer.getInstance(mClassName);
 
         // Create subsystem manager and add all subsystems it will manage
         mSubsystemManager = SubsystemManager.getInstance(mClassName);
         mSubsystemManager.initializeSubsystemManager((int) (mLoopPeriod * 1000),
                 Arrays.asList(
                         // List of subsystems
-                        mJSticks,
+                        robor,
                         mShooter
                         ));
 
