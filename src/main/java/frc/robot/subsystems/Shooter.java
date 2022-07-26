@@ -1,6 +1,6 @@
 package frc.robot.subsystems;
 
-import libraries.SushiFrcLib.Motor.MotorHelper;
+import SushiFrcLib.Motor.MotorHelper;
 import libraries.cheesylib.loops.Loop.Phase;
 import libraries.cheesylib.subsystems.Subsystem;
 
