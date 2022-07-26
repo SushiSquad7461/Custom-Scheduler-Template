@@ -1,18 +1,11 @@
 package frc.robot.subsystems;
 
-import libraries.SushiFrcLib.Motor.MotorHelper;
 import libraries.cheesylib.loops.Loop.Phase;
 import libraries.cheesylib.subsystems.Subsystem;
-
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.constants.StaticStates.JStickState;
 import frc.robot.constants.StaticStates.ShooterState;
-import frc.robot.constants.Constants;
-import frc.robot.constants.Ports;
 
 public class JSticks extends Subsystem<JStickState> {
 
