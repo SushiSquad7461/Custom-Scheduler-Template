@@ -26,4 +26,9 @@ public class StaticStates {
         READING,
         DISABLED
     }
+
+    public static enum RobotState {
+        HOLD,
+        DISABLED
+    }
 }
