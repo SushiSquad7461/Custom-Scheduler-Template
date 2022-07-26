@@ -57,7 +57,7 @@ public class SubsystemManager implements ILooper {
     private void prepAllSubsystemsForLogging(boolean disableLogging) {
         mSSLogMngr.startLogging(disableLogging);
         int i=0;
-        mSSLogMngr.addToLine("LineNum,LoopNum,TicToc,Time,Bitmask");
+        mSSLogMngr.addToLine("LineNum,LoopNum,TicToc,Time,Schedule");
         for (Subsystem s : mAllSubsystems) {
             String header = s.getLogHeaders();
             // count commas
@@ -91,7 +91,7 @@ public class SubsystemManager implements ILooper {
     private class TheLoop implements Loop {
         private final int lSchedLength = 1000;  // 1000 msec == one second, cannot schedule beyond one sec ahead
         private final int lInitialDelay = 10;
-        private int[] lSchedule = new int[lSchedLength];
+        private long[] lSchedule = new long[mSSCount];
         private long lTicToc;
         private int lLineNum;
         private Phase lPhase;
@@ -107,68 +107,65 @@ public class SubsystemManager implements ILooper {
                 s.onStart(lPhase);
             }
 
-            // clear schedule of any leftover bits
+            // Set time to be invalid
             for (int i=0; i<lSchedule.length; i++){
-                lSchedule[i] = 0;
+                lSchedule[i] = -1;
             }
             
             // get current time and turn it into MSec's
             lTicToc = (long)(Timer.getFPGATimestamp()*1000.0+.5); // System.currentTimeMillis();
 
-            // schedule all subsystems to start, spread out 
+            // schedule all subsystems to start, spread out
             for (int i=0; i<mSSCount; i++){
-                lSchedule[(int)((lTicToc+lInitialDelay+i*2)%lSchedule.length)] = 1<<i;
+                lSchedule[i] = (long)(lTicToc+lInitialDelay+i);
             }
+
             lLineNum=0;
 
             // when disabled a log file is not wanted
             if (lPhase == Phase.DISABLED){
                 disableLogging = true;
             }
+
             prepAllSubsystemsForLogging(disableLogging);
        }
 
         @Override
         public void onLoop(double timestamp) {
-
             // each time this is called it loops mLoopPeriod times
             // mLoopPeriod is the number msecs between calls
             // one loop per msec
             for (int i=0; i<mLoopPeriod; i++){
                 int subsystemIndex = 0;
-                int bitmask = lSchedule[(int)(lTicToc%lSchedule.length)];
 
-                mSSLogMngr.addToLine(""+lLineNum++ +","+i+","+lTicToc+","+Timer.getFPGATimestamp()+","+bitmask);
+                // Stringfy current schedule, TODO: figure out how to optimize
+                String schedule = "";
+                for (int j=0; j < lSchedule.length-1; ++j) {
+                    schedule += lSchedule[j] + ":";
+                }
+                schedule += lSchedule[lSchedule.length-1];
 
-                // each bit represents a SS to run now
-                while (bitmask>0){
-                    // turn bit into index into all subsystem list
-                    while ((bitmask & (1 << subsystemIndex)) == 0){
+                mSSLogMngr.addToLine(""+lLineNum++ +","+i+","+lTicToc+","+Timer.getFPGATimestamp()+","+schedule);
+
+                for (int j=0; j<lSchedule.length; ++j){
+                    // Final part of if statment to help prevent errors, assumes that scheudler will never be 50ms behind
+                    if (lTicToc >= lSchedule[j] && lSchedule[j] >= 0 && (lTicToc - lSchedule[j] < 50)) {
+                        // run all phases for this SS and get next time to run in delta MSec
+                        int nextRun = runALoop(subsystemIndex);
+
+                        // 0 means do not schedule
+                        if (nextRun != 0){
+                            lSchedule[j] = lTicToc+nextRun;
+                        } else {
+                            lSchedule[j] = -1;
+                        }
+                    } else {
                         mSSLogMngr.addToLine(mSSEmptyLog[subsystemIndex]);
-                        subsystemIndex++;
                     }
-
-                    // run all phases for this SS and get next time to run in delta MSec
-                    int nextRun = runALoop(subsystemIndex);
-
-                    // 0 means do not schedule
-                    if (nextRun != 0){
-                        lSchedule[(int)((lTicToc+nextRun)%lSchedule.length)] |= (1 << subsystemIndex);
-                    }
-
-                    // clear bit for SS just run
-                    bitmask &= ~(1 << subsystemIndex);
-                    // point to next SS
-                    subsystemIndex++;
                 }
-                // handle completely empty line and end of partial line 
-                for (int j=subsystemIndex; j<mSSCount; j++){
-                    mSSLogMngr.addToLine(mSSEmptyLog[j]);
-                }
+
                 mSSLogMngr.endLine();
 
-                // clear this schedule
-                lSchedule[(int)(lTicToc%lSchedule.length)] = 0;
                 // advance to next schedule slot
                 lTicToc++;
 
@@ -186,9 +183,8 @@ public class SubsystemManager implements ILooper {
                 // currently they are equal
                 // if mLoopPeriod is greater then this stops the loop from getting ahead
                 lLostTime = ((long)(Timer.getFPGATimestamp()*1000.0+.5))-lTicToc;
-                if ( lLostTime <= 0){
+                if (lLostTime <= 0){
                     break;
-
                 }
             }
         }
@@ -202,13 +198,9 @@ public class SubsystemManager implements ILooper {
         }
 
         public void scheduleMe(int listIndex, int when, boolean clearScheduled){
-            if (clearScheduled){
-                int mask = ~(1<<listIndex);
-                for (int i=0; i<lSchedLength; i++){
-                    lSchedule[i] &= mask;
-                }
+            if (listIndex > mSSCount) {
+                lSchedule[listIndex] = lTicToc+when;
             }
-            lSchedule[(int)((lTicToc+when)%lSchedule.length)] |= (1 << listIndex);
         }
 
         // This could be passed in
@@ -233,7 +225,8 @@ public class SubsystemManager implements ILooper {
         int index = 0;
 
         for (Subsystem s : mAllSubsystems) {
-            s.passInIndex(index++);
+            s.passInIndex(index);
+            index += 1;
         }
         looper2.register(mTheLoop);
     }
@@ -252,7 +245,6 @@ public class SubsystemManager implements ILooper {
 
     @Override
     public int register(Loop loop) {
-        // TODO Auto-generated method stub
         return 0;
     }
  }
