@@ -60,7 +60,7 @@ public class JSticks extends Subsystem<JStickState> {
     }
 
     @Override
-    public void onLoop() {
+    public void changeState() {
         synchronized (JSticks.this) {
             switch(getCurrentState()) {
                 case READING:
@@ -76,6 +76,7 @@ public class JSticks extends Subsystem<JStickState> {
         if(stateChanged()) {
             mPeriodicIO.reading = true;
         }
+        transferState();
     }
 
     private void handleDisable() {
@@ -83,6 +84,7 @@ public class JSticks extends Subsystem<JStickState> {
             stop();
             setPeriod(kSchedDeltaDormant);
         }
+        transferState();
     }
 
     @Override

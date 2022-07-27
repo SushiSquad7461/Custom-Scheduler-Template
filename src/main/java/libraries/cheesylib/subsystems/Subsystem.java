@@ -93,7 +93,8 @@ public abstract class Subsystem<SubsystemState extends Enum<SubsystemState>>  {
     public final void onLoop(double timestamp){
         synchronized (this) {
             do {
-                onLoop();
+                System.out.println("b");
+                changeState();
 
                 if (wantedState != currentState) {
                     System.out.println(
@@ -111,7 +112,7 @@ public abstract class Subsystem<SubsystemState extends Enum<SubsystemState>>  {
         return mStateChanged;
     }
 
-    public abstract void onLoop();
+    public abstract void changeState();
 
     public void zeroSensors() {}
     

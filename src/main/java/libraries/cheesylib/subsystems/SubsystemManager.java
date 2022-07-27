@@ -198,7 +198,7 @@ public class SubsystemManager implements ILooper {
         }
 
         public void scheduleMe(int listIndex, int when, boolean clearScheduled){
-            if (listIndex > mSSCount) {
+            if (listIndex < mSSCount) {
                 lSchedule[listIndex] = lTicToc+when;
             }
         }
