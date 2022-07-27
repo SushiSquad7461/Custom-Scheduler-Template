@@ -136,8 +136,6 @@ public class SubsystemManager implements ILooper {
             // mLoopPeriod is the number msecs between calls
             // one loop per msec
             for (int i=0; i<mLoopPeriod; i++){
-                int subsystemIndex = 0;
-
                 // Stringfy current schedule, TODO: figure out how to optimize
                 String schedule = "";
                 for (int j=0; j < lSchedule.length-1; ++j) {
@@ -160,7 +158,7 @@ public class SubsystemManager implements ILooper {
                             lSchedule[j] = -1;
                         }
                     } else {
-                        mSSLogMngr.addToLine(mSSEmptyLog[subsystemIndex]);
+                        mSSLogMngr.addToLine(mSSEmptyLog[j]);
                     }
                 }
 
