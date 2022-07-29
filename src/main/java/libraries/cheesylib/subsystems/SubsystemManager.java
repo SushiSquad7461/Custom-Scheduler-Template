@@ -138,14 +138,14 @@ public class SubsystemManager implements ILooper {
             for (int i=0; i<mLoopPeriod; i++){
                 // Stringfy current schedule, TODO: figure out how to optimize
                 String schedule = "";
-                for (int j=0; j < lSchedule.length-1; ++j) {
+                for (int j=0; j < lSchedule.length-1; j++) {
                     schedule += lSchedule[j] + ":";
                 }
                 schedule += lSchedule[lSchedule.length-1];
 
                 mSSLogMngr.addToLine(""+lLineNum++ +","+i+","+lTicToc+","+Timer.getFPGATimestamp()+","+schedule);
 
-                for (int j=0; j<lSchedule.length; ++j){
+                for (int j=0; j<lSchedule.length; j++){
                     // Final part of if statment to help prevent errors, assumes that scheudler will never be 50ms behind
                     if (lTicToc >= lSchedule[j] && lSchedule[j] >= 0 && (lTicToc - lSchedule[j] < 50)) {
                         // run all phases for this SS and get next time to run in delta MSec

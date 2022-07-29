@@ -93,23 +93,24 @@ public abstract class Subsystem<SubsystemState extends Enum<SubsystemState>>  {
     public final void onLoop(double timestamp){
         synchronized (this) {
             do {
-                System.out.println("b");
                 changeState();
-
                 if (wantedState != currentState) {
                     System.out.println(
                         subsystemName + " state " + currentState + " to " + wantedState + " (" + timestamp + ")");
                     currentState = wantedState;
                     mStateChanged = true;
                 } else {
-                    mStateChanged = false;
                 }
             } while (mLB_SystemStateChange.update(mStateChanged));
         }
     }
 
     protected boolean stateChanged() {
-        return mStateChanged;
+        if(mStateChanged) {
+            mStateChanged = false;
+            return true;
+        }
+        return false;
     }
 
     public abstract void changeState();
@@ -182,7 +183,7 @@ public abstract class Subsystem<SubsystemState extends Enum<SubsystemState>>  {
             scheduleForStateChange();
             System.out.println(who + " is setting wanted state of " + subsystemName + " to " + state);
         } else {
-            System.out.println(who + " is setting wanted state of " + subsystemName + " to " + state + " again!!!");
+            //System.out.println(who + " is setting wanted state of " + subsystemName + " to " + state + " again!!!");
         }
     }
 
