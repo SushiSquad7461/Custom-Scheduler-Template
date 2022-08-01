@@ -7,11 +7,14 @@ package frc.robot;
 import java.util.Arrays;
 
 import SushiFrcLib.ChesyLibUtil.CrashTracker;
+import SushiFrcLib.Constants.SushiConstants;
+import SushiFrcLib.DependencyInjection.RobotName;
 import SushiFrcLib.Scheduler.Loops.Looper;
 import SushiFrcLib.Scheduler.Subsystems.SubsystemManager;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import frc.robot.constants.Constants;
 import frc.robot.subsystems.*;
 
 /**
@@ -22,54 +25,40 @@ import frc.robot.subsystems.*;
  * project.
  */
 public class Robot extends TimedRobot {
-    /**
-     * This function is run when the robot is first started up and should be used
-     * for any
-     * initialization code.
-     */
-    // The constructor for RobotName looks in the deploy directory
-    // (home/lvuser/deploy/) on the robot for
-    // a file name RobotName.txt. If found it reads the first line of the file and
-    // saves what it reads as the robot's name. Note: the name passed into the
-    // constructor
-    // is the name used if no RobotName.txt file is found.
-    // in the src\main\deploy directory of VS is a RobotName.txt file
-    // this file is downloaded to the deploy directory with each deploy of the robot
-    // jar file
-
+    // Name 
     private String mClassName;
 
     // Subsystems
     private SubsystemManager mSubsystemManager;
-    // private JSticks mJSticks;
     private JSticks mJSticks;
     private Shooter mShooter;
 
-    private final double mLoopPeriod = .005;
-    private Looper mSubsystemLooper = new Looper(mLoopPeriod, Thread.NORM_PRIORITY + 1);
-
+    private Looper mSubsystemLooper = new Looper(SushiConstants.SCHEDULER.LOOPPERIOD, Thread.NORM_PRIORITY + 1);
 
     @Override
     public void robotInit() {
         System.out.println("robotInit() begins");
         Timer.delay(.05); // give rest of system 50 msec to come up first
         mClassName = this.getClass().getSimpleName();
-        // LiveWindow.disableAllTelemetry();
-        // LiveWindow.setEnabled(false);
+        
+        // Get name and set constants
+        RobotName.getInstance();
+        Constants.setup();
+
         // Initializing subsystems
-        mSubsystemManager = SubsystemManager.getInstance(mClassName);
-        // mJSticks = JSticks.getInstance(mClassName);
         mShooter = Shooter.getInstance(mClassName);
         mJSticks = JSticks.getInstance(mClassName);
 
         // Create subsystem manager and add all subsystems it will manage
         mSubsystemManager = SubsystemManager.getInstance(mClassName);
-        mSubsystemManager.initializeSubsystemManager((int) (mLoopPeriod * 1000),
-                Arrays.asList(
-                        // List of subsystems
-                        mShooter,
-                        mJSticks
-                        ));
+        mSubsystemManager.initializeSubsystemManager(
+            (int) (SushiConstants.SCHEDULER.LOOPPERIODMS),
+            Arrays.asList(
+                // List of subsystems
+                mShooter,
+                mJSticks
+            )
+        );
 
         // ask each subsystem to register itself
         mSubsystemManager.registerEnabledLoops(mSubsystemLooper);
@@ -109,9 +98,7 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void teleopPeriodic() {
-        // This will send the Network Table data to DriveStation at a consistent rate.
-    }
+    public void teleopPeriodic() { }
 
     @Override
     public void disabledInit() {
@@ -129,14 +116,11 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void disabledPeriodic() {
-    }
+    public void disabledPeriodic() { }
 
     @Override
-    public void testInit() {
-    }
+    public void testInit() { }
 
     @Override
-    public void testPeriodic() {
-    }
+    public void testPeriodic() { }
 }

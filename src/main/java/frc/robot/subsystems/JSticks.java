@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import SushiFrcLib.Constants.SushiConstants;
 import SushiFrcLib.Scheduler.Loops.Loop.Phase;
 import SushiFrcLib.Scheduler.Subsystems.Subsystem;
 import edu.wpi.first.wpilibj.XboxController;
@@ -34,7 +35,7 @@ public class JSticks extends Subsystem<JStickState> {
     }
 
     private JSticks(String caller) {
-        controller = new XboxController(0);
+        controller = new XboxController(SushiConstants.OI.DRIVER_PORT);
         mShooter = Shooter.getInstance("JSticks");
         printUsage(caller);
     }

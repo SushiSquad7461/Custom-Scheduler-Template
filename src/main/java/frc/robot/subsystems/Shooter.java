@@ -11,7 +11,7 @@ import SushiFrcLib.Scheduler.Loops.Loop.Phase;
 import SushiFrcLib.Scheduler.Subsystems.Subsystem;
 import frc.robot.constants.StaticStates.ShooterState;
 import frc.robot.constants.Constants;
-import frc.robot.constants.Ports;
+import frc.robot.constants.Constants.Ports;
 
 public class Shooter extends Subsystem<ShooterState> {
 
