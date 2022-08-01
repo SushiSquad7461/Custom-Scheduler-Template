@@ -1,14 +1,14 @@
 package frc.robot.subsystems;
 
-import SushiFrcLib.Motor.MotorHelper;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import libraries.cheesylib.loops.Loop.Phase;
-import libraries.cheesylib.subsystems.Subsystem;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
+import SushiFrcLib.Motor.MotorHelper;
+import SushiFrcLib.Scheduler.Loops.Loop.Phase;
+import SushiFrcLib.Scheduler.Subsystems.Subsystem;
 import frc.robot.constants.StaticStates.ShooterState;
 import frc.robot.constants.Constants;
 import frc.robot.constants.Ports;

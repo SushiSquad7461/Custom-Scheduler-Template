@@ -1,8 +1,7 @@
 package frc.robot.subsystems;
 
-import libraries.cheesylib.loops.Loop.Phase;
-import libraries.cheesylib.subsystems.Subsystem;
-
+import SushiFrcLib.Scheduler.Loops.Loop.Phase;
+import SushiFrcLib.Scheduler.Subsystems.Subsystem;
 import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.constants.StaticStates.JStickState;
 import frc.robot.constants.StaticStates.ShooterState;
