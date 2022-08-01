@@ -62,7 +62,7 @@ public class Shooter extends Subsystem<ShooterState> {
     }
 
     @Override
-    public void changeState() {
+    public void periodic() {
         switch(getCurrentState()) {
             case TARMAC:
                 tarmacShot();
@@ -73,7 +73,8 @@ public class Shooter extends Subsystem<ShooterState> {
             case DISABLED:
                 handleDisable();
                 break;
-        }       
+        }
+        backRoller.set(ControlMode.PercentOutput, mPeriodicIO.backSpeed/6000.0);
     }
 
     private void tarmacShot() {
@@ -106,28 +107,7 @@ public class Shooter extends Subsystem<ShooterState> {
     }
 
     @Override
-    public void readPeriodic() {
-
-    }
-
-    @Override
-    public void writePeriodic() {
-        backRoller.set(ControlMode.PercentOutput, mPeriodicIO.backSpeed/6000.0);
-    }
-
-    @Override
-    public String getPeriodicLogHeaders() {
-        return "";
-    }
-
-    @Override
-    public String getLogValues() {
-        return "";
-    }
-
-    @Override
     public void outputTelemetry() {    
         SmartDashboard.putNumber("back speed", mPeriodicIO.backSpeed);    
     }
-
 }

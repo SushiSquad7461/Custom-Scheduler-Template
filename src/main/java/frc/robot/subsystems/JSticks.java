@@ -59,8 +59,16 @@ public class JSticks extends Subsystem<JStickState> {
     }
 
     @Override
-    public void changeState() {
+    public void periodic() {
         synchronized (JSticks.this) {
+            if (controller.getYButton() ) {
+                mShooter.setWantedState(ShooterState.FENDER, "JSticks");
+            } else if (controller.getAButton()) {
+                mShooter.setWantedState(ShooterState.TARMAC, "JSticks");
+            } else {
+                mShooter.setWantedState(ShooterState.DISABLED, "JSticks");
+            }
+
             switch(getCurrentState()) {
                 case READING:
                     readButtons();
@@ -68,7 +76,7 @@ public class JSticks extends Subsystem<JStickState> {
                     handleDisable();
                     break;
             }
-        }       
+        }
     }
 
     private void readButtons() {
@@ -90,34 +98,4 @@ public class JSticks extends Subsystem<JStickState> {
     public void stop() {
         mPeriodicIO.reading = false;
     }
-
-    @Override
-    public void readPeriodic() {
-        if( controller.getYButton() ) {
-            mShooter.setWantedState(ShooterState.FENDER, "JSticks");
-        } else if (controller.getAButton()) {
-            mShooter.setWantedState(ShooterState.TARMAC, "JSticks");
-        } else {
-            mShooter.setWantedState(ShooterState.DISABLED, "JSticks");
-        }
-    }
-
-    @Override
-    public void writePeriodic() {
-    }
-
-    @Override
-    public String getPeriodicLogHeaders() {
-        return "";
-    }
-
-    @Override
-    public String getLogValues() {
-        return "";
-    }
-
-    @Override
-    public void outputTelemetry() {        
-    }
-
 }
