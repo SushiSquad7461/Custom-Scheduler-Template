@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
-import libraries.SushiFrcLib.Motor.MotorHelper;
+import SushiFrcLib.Motor.MotorHelper;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import libraries.cheesylib.loops.Loop.Phase;
 import libraries.cheesylib.subsystems.Subsystem;
 
@@ -55,24 +56,23 @@ public class Shooter extends Subsystem<ShooterState> {
     public void start(Phase phase) {    
         synchronized (Shooter.this) {
             setState(ShooterState.DISABLED);
+            setWantedState(ShooterState.DISABLED, "Shooter");
             setPeriod(kSchedDeltaDormant);
         }
     }
 
     @Override
-    public void onLoop() {
-        synchronized (Shooter.this) {
-            switch(getCurrentState()) {
-                case TARMAC:
-                    tarmacShot();
-                    break;
-                case FENDER:
-                    fenderShot();
-                    break;
-                case DISABLED:
-                    handleDisable();
-                    break;
-            }
+    public void changeState() {
+        switch(getCurrentState()) {
+            case TARMAC:
+                tarmacShot();
+                break;
+            case FENDER:
+                fenderShot();
+                break;
+            case DISABLED:
+                handleDisable();
+                break;
         }       
     }
 
@@ -112,7 +112,7 @@ public class Shooter extends Subsystem<ShooterState> {
 
     @Override
     public void writePeriodic() {
-        backRoller.set(ControlMode.PercentOutput, 6000.0/mPeriodicIO.backSpeed);
+        backRoller.set(ControlMode.PercentOutput, mPeriodicIO.backSpeed/6000.0);
     }
 
     @Override
@@ -126,7 +126,8 @@ public class Shooter extends Subsystem<ShooterState> {
     }
 
     @Override
-    public void outputTelemetry() {        
+    public void outputTelemetry() {    
+        SmartDashboard.putNumber("back speed", mPeriodicIO.backSpeed);    
     }
 
 }

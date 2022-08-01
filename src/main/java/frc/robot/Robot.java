@@ -66,8 +66,8 @@ public class Robot extends TimedRobot {
         mSubsystemManager.initializeSubsystemManager((int) (mLoopPeriod * 1000),
                 Arrays.asList(
                         // List of subsystems
-                        mJSticks,
-                        mShooter
+                        mShooter,
+                        mJSticks
                         ));
 
         // ask each subsystem to register itself
