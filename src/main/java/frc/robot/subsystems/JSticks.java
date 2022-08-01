@@ -13,15 +13,12 @@ public class JSticks extends Subsystem<JStickState> {
     private final XboxController controller;
 
     //Subsystem Constants
-    private final int kSchedDeltaDormant = 100;
     private final int kSchedDeltaActive = 5;
+    private int kSchedDeltaDormant = 100;
 
     //Subsystem Variables
-    public final Shooter mShooter;
-    public static class mPeriodicIO {
-        public static boolean reading;
-    }
-
+    public final ExampleSubsystem mShooter;
+    
     //Subsystem Creation
     private static JSticks sInstance = null;
 
@@ -36,7 +33,7 @@ public class JSticks extends Subsystem<JStickState> {
 
     private JSticks(String caller) {
         controller = new XboxController(SushiConstants.OI.DRIVER_PORT);
-        mShooter = Shooter.getInstance("JSticks");
+        mShooter = ExampleSubsystem.getInstance("JSticks");
         printUsage(caller);
     }
 
@@ -81,9 +78,6 @@ public class JSticks extends Subsystem<JStickState> {
     }
 
     private void readButtons() {
-        if(stateChanged()) {
-            mPeriodicIO.reading = true;
-        }
         transferState();
     }
 
@@ -97,6 +91,5 @@ public class JSticks extends Subsystem<JStickState> {
 
     @Override
     public void stop() {
-        mPeriodicIO.reading = false;
     }
 }

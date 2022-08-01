@@ -31,7 +31,7 @@ public class Robot extends TimedRobot {
     // Subsystems
     private SubsystemManager mSubsystemManager;
     private JSticks mJSticks;
-    private Shooter mShooter;
+    private ExampleSubsystem mShooter;
 
     private Looper mSubsystemLooper = new Looper(SushiConstants.SCHEDULER.LOOPPERIOD, Thread.NORM_PRIORITY + 1);
 
@@ -46,7 +46,7 @@ public class Robot extends TimedRobot {
         Constants.setup();
 
         // Initializing subsystems
-        mShooter = Shooter.getInstance(mClassName);
+        mShooter = ExampleSubsystem.getInstance(mClassName);
         mJSticks = JSticks.getInstance(mClassName);
 
         // Create subsystem manager and add all subsystems it will manage
