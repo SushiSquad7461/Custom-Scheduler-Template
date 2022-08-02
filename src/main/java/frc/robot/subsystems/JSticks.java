@@ -5,7 +5,6 @@ import SushiFrcLib.Scheduler.Loops.Loop.Phase;
 import SushiFrcLib.Scheduler.Subsystems.Subsystem;
 import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.constants.StaticStates.JStickState;
-import frc.robot.constants.StaticStates.ShooterState;
 
 public class JSticks extends Subsystem<JStickState> {
 
@@ -18,7 +17,7 @@ public class JSticks extends Subsystem<JStickState> {
 
     //Subsystem Variables
     public final ExampleSubsystem mShooter;
-    
+
     //Subsystem Creation
     private static JSticks sInstance = null;
 
@@ -41,13 +40,11 @@ public class JSticks extends Subsystem<JStickState> {
     public void start(Phase phase) {    
         synchronized (JSticks.this) {
             switch (phase) {
-                case DISABLED:
                 case AUTONOMOUS:
                     setPeriod(0);
                     setState(JStickState.DISABLED);
                     setWantedState(JStickState.DISABLED, "JSticks");
                     break;
-                case TEST:
                 default:
                     setState(JStickState.READING);
                     setWantedState(JStickState.READING, "JSticks");
@@ -59,14 +56,6 @@ public class JSticks extends Subsystem<JStickState> {
     @Override
     public void periodic() {
         synchronized (JSticks.this) {
-            if (controller.getYButton() ) {
-                mShooter.setWantedState(ShooterState.FENDER, "JSticks");
-            } else if (controller.getAButton()) {
-                mShooter.setWantedState(ShooterState.TARMAC, "JSticks");
-            } else {
-                mShooter.setWantedState(ShooterState.DISABLED, "JSticks");
-            }
-
             switch(getCurrentState()) {
                 case READING:
                     readButtons();

@@ -1,10 +1,8 @@
 package frc.robot.constants;
 
 public class StaticStates {
-    public static enum ShooterState {
-        TARMAC,
-        FENDER,
-        DISABLED
+    public static enum ExampleState {
+        ENABLED
     }
 
     public static enum JStickState {

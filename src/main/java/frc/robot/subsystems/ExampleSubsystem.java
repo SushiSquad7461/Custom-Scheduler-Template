@@ -2,9 +2,9 @@ package frc.robot.subsystems;
 
 import SushiFrcLib.Scheduler.Loops.Loop.Phase;
 import SushiFrcLib.Scheduler.Subsystems.Subsystem;
-import frc.robot.constants.StaticStates.ShooterState;
+import frc.robot.constants.StaticStates.ExampleState;
 
-public class ExampleSubsystem extends Subsystem<ShooterState> {
+public class ExampleSubsystem extends Subsystem<ExampleState> {
     //Subsystem Creation
     private static ExampleSubsystem sInstance = null;
 
