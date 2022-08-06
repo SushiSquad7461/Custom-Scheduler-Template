@@ -9,11 +9,15 @@ import java.util.Arrays;
 import SushiFrcLib.ChesyLibUtil.CrashTracker;
 import SushiFrcLib.Constants.SushiConstants;
 import SushiFrcLib.DependencyInjection.RobotName;
+import SushiFrcLib.Scheduler.Scheduler;
+import SushiFrcLib.Scheduler.Commands.CustomCommand;
 import SushiFrcLib.Scheduler.Loops.Looper;
-import SushiFrcLib.Scheduler.Subsystems.SubsystemManager;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.constants.Constants;
 import frc.robot.subsystems.*;
 
@@ -29,7 +33,7 @@ public class Robot extends TimedRobot {
     private String mClassName;
 
     // Subsystems
-    private SubsystemManager mSubsystemManager;
+    private Scheduler mSubsystemManager;
     private JSticks mJSticks;
     private ExampleSubsystem mShooter;
 
@@ -50,8 +54,8 @@ public class Robot extends TimedRobot {
         mJSticks = JSticks.getInstance(mClassName);
 
         // Create subsystem manager and add all subsystems it will manage
-        mSubsystemManager = SubsystemManager.getInstance(mClassName);
-        mSubsystemManager.initializeSubsystemManager(
+        mSubsystemManager = Scheduler.getInstance(mClassName);
+        mSubsystemManager.initializeSubsystems(
             (int) (SushiConstants.SCHEDULER.LOOPPERIODMS),
             Arrays.asList(
                 // List of subsystems
